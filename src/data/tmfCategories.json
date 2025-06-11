@@ -1,0 +1,918 @@
+
+[
+  {
+    "title": "Fruits",
+    "items": [
+      "Apple",
+      "Banana",
+      "Mango",
+      "Grapes",
+      "Pineapple",
+      "Orange",
+      "Strawberry"
+    ]
+  },
+  {
+    "title": "Modes of Transportation",
+    "items": [
+      "Car",
+      "Bicycle",
+      "Train",
+      "Bus",
+      "Airplane",
+      "Boat"
+    ]
+  },
+  {
+    "title": "Common Household Items",
+    "items": [
+      "Spoon",
+      "Chair",
+      "Toothbrush",
+      "Television",
+      "Microwave"
+    ]
+  },
+  {
+    "title": "Global Street Foods",
+    "items": [
+      "Taco",
+      "Shawarma",
+      "Samosa",
+      "Hot Dog",
+      "Bao",
+      "Empanada"
+    ]
+  },
+  {
+    "title": "Animals You\u2019d Want as a Pet",
+    "items": [
+      "Dog",
+      "Cat",
+      "Rabbit",
+      "Parrot",
+      "Hamster",
+      "Turtle"
+    ]
+  },
+  {
+    "title": "Common School Subjects",
+    "items": [
+      "Math",
+      "Science",
+      "History",
+      "Geography",
+      "Art",
+      "Physical Education"
+    ]
+  },
+  {
+    "title": "Fast Food Chains",
+    "items": [
+      "McDonald's",
+      "KFC",
+      "Burger King",
+      "Subway",
+      "Taco Bell"
+    ]
+  },
+  {
+    "title": "Breakfast Foods",
+    "items": [
+      "Pancakes",
+      "Waffles",
+      "Cereal",
+      "Omelette",
+      "Toast",
+      "Smoothie"
+    ]
+  },
+  {
+    "title": "Famous Landmarks",
+    "items": [
+      "Eiffel Tower",
+      "Great Wall of China",
+      "Statue of Liberty",
+      "Taj Mahal",
+      "Christ the Redeemer"
+    ]
+  },
+  {
+    "title": "Board Games",
+    "items": [
+      "Monopoly",
+      "Chess",
+      "Scrabble",
+      "Uno",
+      "Catan",
+      "Clue"
+    ]
+  },
+  {
+    "title": "Types of Weather",
+    "items": [
+      "Sunny",
+      "Rainy",
+      "Snowy",
+      "Windy",
+      "Stormy",
+      "Foggy"
+    ]
+  },
+  {
+    "title": "Popular Beverages",
+    "items": [
+      "Coffee",
+      "Tea",
+      "Soda",
+      "Juice",
+      "Milk",
+      "Smoothie"
+    ]
+  },
+  {
+    "title": "Genres of Music",
+    "items": [
+      "Pop",
+      "Rock",
+      "Hip Hop",
+      "Jazz",
+      "Classical",
+      "Reggae"
+    ]
+  },
+  {
+    "title": "Types of Pasta",
+    "items": [
+      "Spaghetti",
+      "Penne",
+      "Fettuccine",
+      "Macaroni",
+      "Ravioli"
+    ]
+  },
+  {
+    "title": "Ice Cream Flavors",
+    "items": [
+      "Vanilla",
+      "Chocolate",
+      "Strawberry",
+      "Mint Chocolate Chip",
+      "Cookie Dough"
+    ]
+  },
+  {
+    "title": "Social Media Platforms",
+    "items": [
+      "Instagram",
+      "Twitter",
+      "TikTok",
+      "Facebook",
+      "YouTube"
+    ]
+  },
+  {
+    "title": "Famous Athletes",
+    "items": [
+      "Usain Bolt",
+      "Serena Williams",
+      "Lionel Messi",
+      "LeBron James",
+      "Simone Biles"
+    ]
+  },
+  {
+    "title": "Cartoon Characters",
+    "items": [
+      "SpongeBob",
+      "Bugs Bunny",
+      "Scooby-Doo",
+      "Dora",
+      "Tom & Jerry"
+    ]
+  },
+  {
+    "title": "Pixar Movies",
+    "items": [
+      "Toy Story",
+      "Finding Nemo",
+      "Up",
+      "Inside Out",
+      "Coco",
+      "The Incredibles"
+    ]
+  },
+  {
+    "title": "Classic Novels",
+    "items": [
+      "1984",
+      "Pride and Prejudice",
+      "To Kill a Mockingbird",
+      "The Alchemist",
+      "The Little Prince"
+    ]
+  },
+  {
+    "title": "Ocean Creatures",
+    "items": [
+      "Shark",
+      "Dolphin",
+      "Octopus",
+      "Whale",
+      "Jellyfish",
+      "Sea Turtle"
+    ]
+  },
+  {
+    "title": "Emoji Expressions",
+    "items": [
+      "\ud83d\ude02",
+      "\ud83d\ude22",
+      "\ud83d\ude0d",
+      "\ud83d\ude21",
+      "\ud83e\udd14",
+      "\ud83d\ude0e"
+    ]
+  },
+  {
+    "title": "Pizza Toppings",
+    "items": [
+      "Pepperoni",
+      "Mushrooms",
+      "Olives",
+      "Pineapple",
+      "Sausage",
+      "Basil"
+    ]
+  },
+  {
+    "title": "Things You Lose",
+    "items": [
+      "Keys",
+      "Remote",
+      "Socks",
+      "Wallet",
+      "Phone"
+    ]
+  },
+  {
+    "title": "Types of Dance",
+    "items": [
+      "Ballet",
+      "Salsa",
+      "Hip Hop",
+      "Breakdance",
+      "Tango",
+      "Waltz"
+    ]
+  },
+  {
+    "title": "Vacation Activities",
+    "items": [
+      "Hiking",
+      "Swimming",
+      "Sightseeing",
+      "Sunbathing",
+      "Shopping",
+      "Snorkeling"
+    ]
+  },
+  {
+    "title": "Jobs Kids Dream About",
+    "items": [
+      "Astronaut",
+      "Firefighter",
+      "Doctor",
+      "Pop Star",
+      "Athlete",
+      "Detective"
+    ]
+  },
+  {
+    "title": "World Currencies",
+    "items": [
+      "Dollar",
+      "Euro",
+      "Yen",
+      "Rupee",
+      "Pound",
+      "Peso"
+    ]
+  },
+  {
+    "title": "Popular Desserts",
+    "items": [
+      "Cake",
+      "Ice Cream",
+      "Brownie",
+      "Cupcake",
+      "Pudding",
+      "Tiramisu"
+    ]
+  },
+  {
+    "title": "Internet Slang",
+    "items": [
+      "LOL",
+      "BRB",
+      "OMG",
+      "YOLO",
+      "SMH",
+      "BTW"
+    ]
+  },
+  {
+    "title": "Modes of Communication",
+    "items": [
+      "Text",
+      "Call",
+      "Email",
+      "Video Chat",
+      "Letter",
+      "Voice Note"
+    ]
+  },
+  {
+    "title": "Sports Equipment",
+    "items": [
+      "Ball",
+      "Racket",
+      "Helmet",
+      "Bat",
+      "Net",
+      "Gloves"
+    ]
+  },
+  {
+    "title": "Magical Creatures",
+    "items": [
+      "Dragon",
+      "Unicorn",
+      "Phoenix",
+      "Mermaid",
+      "Griffin",
+      "Werewolf"
+    ]
+  },
+  {
+    "title": "Things That Are Cold",
+    "items": [
+      "Ice",
+      "Snow",
+      "Refrigerator",
+      "Popsicle",
+      "Milkshake"
+    ]
+  },
+  {
+    "title": "Common Phobias",
+    "items": [
+      "Spiders",
+      "Heights",
+      "Darkness",
+      "Clowns",
+      "Snakes"
+    ]
+  },
+  {
+    "title": "Green Things",
+    "items": [
+      "Grass",
+      "Leaves",
+      "Frogs",
+      "Cucumbers",
+      "Avocados"
+    ]
+  },
+  {
+    "title": "Things That Beep",
+    "items": [
+      "Microwave",
+      "Car Alarm",
+      "Watch",
+      "Scanner",
+      "Smoke Detector"
+    ]
+  },
+  {
+    "title": "Street Signs",
+    "items": [
+      "Stop",
+      "Yield",
+      "No Parking",
+      "One Way",
+      "Pedestrian Crossing"
+    ]
+  },
+  {
+    "title": "Toys from Childhood",
+    "items": [
+      "Lego",
+      "Barbie",
+      "Yo-Yo",
+      "Rubik\u2019s Cube",
+      "Teddy Bear"
+    ]
+  },
+  {
+    "title": "Snack Foods",
+    "items": [
+      "Chips",
+      "Cookies",
+      "Popcorn",
+      "Granola Bar",
+      "Pretzels"
+    ]
+  },
+  {
+    "title": "Natural Disasters",
+    "items": [
+      "Earthquake",
+      "Tornado",
+      "Flood",
+      "Hurricane",
+      "Volcano"
+    ]
+  },
+  {
+    "title": "Things You Yell",
+    "items": [
+      "Help!",
+      "Stop!",
+      "Go!",
+      "No!",
+      "Yes!"
+    ]
+  },
+  {
+    "title": "Baby Animals",
+    "items": [
+      "Puppy",
+      "Kitten",
+      "Chick",
+      "Calf",
+      "Duckling"
+    ]
+  },
+  {
+    "title": "Things That Glow",
+    "items": [
+      "Stars",
+      "Fireflies",
+      "Neon Signs",
+      "Glow Sticks",
+      "Screen"
+    ]
+  },
+  {
+    "title": "Things with Wheels",
+    "items": [
+      "Bicycle",
+      "Skateboard",
+      "Stroller",
+      "Luggage",
+      "Shopping Cart"
+    ]
+  },
+  {
+    "title": "Appetizers",
+    "items": [
+      "Spring Rolls",
+      "Nachos",
+      "Mozzarella Sticks",
+      "Bruschetta",
+      "Dumplings"
+    ]
+  },
+  {
+    "title": "Superheroes",
+    "items": [
+      "Spider-Man",
+      "Wonder Woman",
+      "Batman",
+      "Iron Man",
+      "Black Panther"
+    ]
+  },
+  {
+    "title": "Winter Clothing",
+    "items": [
+      "Coat",
+      "Scarf",
+      "Gloves",
+      "Beanie",
+      "Boots"
+    ]
+  },
+  {
+    "title": "Hobbies",
+    "items": [
+      "Reading",
+      "Painting",
+      "Gardening",
+      "Cooking",
+      "Playing Music"
+    ]
+  },
+  {
+    "title": "Famous Artists",
+    "items": [
+      "Da Vinci",
+      "Van Gogh",
+      "Picasso",
+      "Frida Kahlo",
+      "Banksy"
+    ]
+  },
+  {
+    "title": "Things at a Party",
+    "items": [
+      "Cake",
+      "Music",
+      "Balloons",
+      "Drinks",
+      "Games"
+    ]
+  },
+  {
+    "title": "Common Excuses",
+    "items": [
+      "I forgot",
+      "My dog ate it",
+      "I'm sick",
+      "Traffic",
+      "I didn't know"
+    ]
+  },
+  {
+    "title": "School Supplies",
+    "items": [
+      "Pencil",
+      "Notebook",
+      "Backpack",
+      "Highlighter",
+      "Calculator"
+    ]
+  },
+  {
+    "title": "Leafy Greens",
+    "items": [
+      "Spinach",
+      "Kale",
+      "Lettuce",
+      "Swiss Chard",
+      "Collard Greens"
+    ]
+  },
+  {
+    "title": "Breakfast Cereals",
+    "items": [
+      "Cornflakes",
+      "Cheerios",
+      "Granola",
+      "Rice Krispies",
+      "Special K"
+    ]
+  },
+  {
+    "title": "International Holidays",
+    "items": [
+      "Christmas",
+      "New Year",
+      "Diwali",
+      "Chinese New Year",
+      "Eid al-Fitr"
+    ]
+  },
+  {
+    "title": "Movie Genres",
+    "items": [
+      "Action",
+      "Comedy",
+      "Drama",
+      "Horror",
+      "Sci-Fi",
+      "Documentary"
+    ]
+  },
+  {
+    "title": "Styles of Painting",
+    "items": [
+      "Watercolor",
+      "Oil",
+      "Digital",
+      "Sketching",
+      "Acrylic"
+    ]
+  },
+  {
+    "title": "Common Professions",
+    "items": [
+      "Teacher",
+      "Engineer",
+      "Doctor",
+      "Chef",
+      "Journalist"
+    ]
+  },
+  {
+    "title": "Park Activities",
+    "items": [
+      "Picnic",
+      "Hiking",
+      "Birdwatching",
+      "Jogging",
+      "Frisbee"
+    ]
+  },
+  {
+    "title": "Instruments",
+    "items": [
+      "Guitar",
+      "Piano",
+      "Violin",
+      "Drums",
+      "Flute"
+    ]
+  },
+  {
+    "title": "Card Games",
+    "items": [
+      "Poker",
+      "Bridge",
+      "Hearts",
+      "Go Fish",
+      "Blackjack"
+    ]
+  },
+  {
+    "title": "Candy Types",
+    "items": [
+      "Chocolate",
+      "Gummy Bears",
+      "Hard Candy",
+      "Caramel",
+      "Lollipop"
+    ]
+  },
+  {
+    "title": "Emotions",
+    "items": [
+      "Happiness",
+      "Sadness",
+      "Anger",
+      "Surprise",
+      "Fear"
+    ]
+  },
+  {
+    "title": "Ecosystems",
+    "items": [
+      "Rainforest",
+      "Desert",
+      "Coral Reef",
+      "Tundra",
+      "Grassland"
+    ]
+  },
+  {
+    "title": "Spices",
+    "items": [
+      "Pepper",
+      "Cinnamon",
+      "Turmeric",
+      "Cumin",
+      "Garlic"
+    ]
+  },
+  {
+    "title": "Sweets",
+    "items": [
+      "Donut",
+      "Muffin",
+      "Pie",
+      "Macaron",
+      "Cr\u00e8me Br\u00fbl\u00e9e"
+    ]
+  },
+  {
+    "title": "YouTube Categories",
+    "items": [
+      "DIY",
+      "Unboxing",
+      "Vlogs",
+      "Music Videos",
+      "Gaming Tutorials"
+    ]
+  },
+  {
+    "title": "Snack Drinks",
+    "items": [
+      "Soda",
+      "Energy Drink",
+      "Hot Chocolate",
+      "Lemonade",
+      "Iced Tea"
+    ]
+  },
+  {
+    "title": "Types of Wheels",
+    "items": [
+      "Car Wheel",
+      "Bike Wheel",
+      "Skate Board Wheel",
+      "Rollerblade Wheel",
+      "Train Wheel"
+    ]
+  },
+  {
+    "title": "Classic Movies",
+    "items": [
+      "The Godfather",
+      "Casablanca",
+      "Star Wars",
+      "The Wizard of Oz",
+      "Jurassic Park"
+    ]
+  },
+  {
+    "title": "Video Game Consoles",
+    "items": [
+      "PlayStation",
+      "Xbox",
+      "Switch",
+      "PC",
+      "Mobile"
+    ]
+  },
+  {
+    "title": "Office Supplies",
+    "items": [
+      "Paper",
+      "Stapler",
+      "Pen",
+      "Highlighter",
+      "Filing Cabinet"
+    ]
+  },
+  {
+    "title": "Festival Types",
+    "items": [
+      "Music Festival",
+      "Food Festival",
+      "Carnival",
+      "Film Festival",
+      "Street Fair"
+    ]
+  },
+  {
+    "title": "Trees",
+    "items": [
+      "Oak",
+      "Pine",
+      "Bamboo",
+      "Maple",
+      "Palm"
+    ]
+  },
+  {
+    "title": "Mythological Gods",
+    "items": [
+      "Zeus",
+      "Ra",
+      "Thor",
+      "Shiva",
+      "Apollo"
+    ]
+  },
+  {
+    "title": "Clothing Items",
+    "items": [
+      "Shirt",
+      "Jeans",
+      "Dress",
+      "Jacket",
+      "Socks"
+    ]
+  },
+  {
+    "title": "Facial Hair",
+    "items": [
+      "Beard",
+      "Moustache",
+      "Goatee",
+      "Soul Patch",
+      "Clean Shaven"
+    ]
+  },
+  {
+    "title": "Planes vs Birds (Mashup)",
+    "items": [
+      "Plane",
+      "Bird",
+      "Helicopter",
+      "Dragonfly",
+      "Hot Air Balloon"
+    ]
+  },
+  {
+    "title": "Childhood Games",
+    "items": [
+      "Tag",
+      "Hide and Seek",
+      "Red Rover",
+      "Musical Chairs",
+      "Dodgeball"
+    ]
+  },
+  {
+    "title": "Coffee Drinks",
+    "items": [
+      "Latte",
+      "Espresso",
+      "Cappuccino",
+      "Americano",
+      "Mocha"
+    ]
+  },
+  {
+    "title": "Toiletries",
+    "items": [
+      "Shampoo",
+      "Soap",
+      "Toothpaste",
+      "Deodorant",
+      "Conditioner"
+    ]
+  },
+  {
+    "title": "Outdoor Sports",
+    "items": [
+      "Soccer",
+      "Basketball",
+      "Tennis",
+      "Baseball",
+      "Cricket"
+    ]
+  },
+  {
+    "title": "Building Materials",
+    "items": [
+      "Wood",
+      "Brick",
+      "Concrete",
+      "Glass",
+      "Steel"
+    ]
+  },
+  {
+    "title": "Transportation Apps",
+    "items": [
+      "Uber",
+      "Lyft",
+      "Grab",
+      "DiDi",
+      "Bolt"
+    ]
+  },
+  {
+    "title": "Office Drinks",
+    "items": [
+      "Coffee",
+      "Tea",
+      "Water",
+      "Juice",
+      "Soda"
+    ]
+  },
+  {
+    "title": "Pop Bands",
+    "items": [
+      "The Beatles",
+      "BTS",
+      "One Direction",
+      "Coldplay",
+      "ABBA"
+    ]
+  },
+  {
+    "title": "Energy Sources",
+    "items": [
+      "Coal",
+      "Wind",
+      "Sun",
+      "Nuclear",
+      "Hydro"
+    ]
+  },
+  {
+    "title": "Comic Strips",
+    "items": [
+      "Peanuts",
+      "Calvin and Hobbes",
+      "Garfield",
+      "Dilbert",
+      "The Far Side"
+    ]
+  }
+]
