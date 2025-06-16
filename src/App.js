@@ -91,19 +91,13 @@ useEffect(() => {
       {/* MAIN MENU */}
       {mode === "menu" && (
         <div className="text-center mt-10 space-y-4">
-          <button
-            className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700"
-            onClick={() => setMode("solo")}
-          >
-            🧪 Try Solo Mode
-          </button>
-          <br />
+  
           <button
             className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700"
             onClick={() => setMode("multi")}
           >
             🌐 Join Multiplayer Game
-          </button>
+          </button> <br/>
           <button
       className="bg-yellow-500 text-white px-6 py-3 rounded hover:bg-yellow-600"
       onClick={createTestGameRoom}
