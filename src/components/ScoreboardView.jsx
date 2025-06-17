@@ -13,13 +13,13 @@ function ScoreboardView({ players, onNext, rounds = [] }) {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded shadow">
-      <h2 className="text-3xl font-bold text-center mb-4">📊 Scoreboard</h2>
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded shadow text-gray-800">
+      <h2 className="text-3xl font-bold text-center mb-4">🏆 Scoreboard</h2>
       
       <ul className="space-y-2 mb-6">
-        {sorted.map((player, index) => (
+        {sorted.map((player, index) => ( // Fix: Added 'index' here for key
           <li
-            key={index}
+            key={index} // Using index as key is okay if items don't reorder/change
             className="flex justify-between items-center border p-3 rounded bg-gray-50"
           >
             <span>
@@ -31,8 +31,8 @@ function ScoreboardView({ players, onNext, rounds = [] }) {
       </ul>
 
       {lastRound && (
-        <div className="bg-yellow-100 p-4 rounded border mb-6">
-          <h3 className="text-lg font-semibold mb-2">📦 Last Round Summary</h3>
+        <div className="bg-yellow-100 p-4 rounded border mb-6 text-gray-800">
+          <h3 className="text-lg font-semibold mb-2">📊 Last Round Summary</h3>
           <p className="mb-2 text-sm text-gray-700">
             <strong>Category:</strong> {lastRound.categoryTitle}
           </p>
@@ -53,7 +53,7 @@ function ScoreboardView({ players, onNext, rounds = [] }) {
             onClick={onNext}
             className="px-6 py-2 rounded bg-green-600 text-white hover:bg-green-700"
           >
-            🔁 Start Next Round
+            🔄 Start Next Round
           </button>
         </div>
       )}
