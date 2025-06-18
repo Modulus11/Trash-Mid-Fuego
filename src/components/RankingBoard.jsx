@@ -7,8 +7,12 @@ const tierIcons = {
   TRASH: "🗑️"
 };
 
-function RankingBoard({ items, onRankingChange, lockedIn }) {
-  const [placements, setPlacements] = useState({});
+function RankingBoard({ items, onRankingChange, lockedIn, initialPlacements }) {
+  const [placements, setPlacements] = useState(initialPlacements || {});
+
+  useEffect(() => {
+    setPlacements(initialPlacements || {});
+  }, [initialPlacements]);
 
   const handleChitClick = (item, tier) => {
     if (lockedIn) return;
@@ -16,15 +20,10 @@ function RankingBoard({ items, onRankingChange, lockedIn }) {
     const newPlacements = { ...placements, [item]: tier };
     setPlacements(newPlacements);
 
-    // Call back to PlayerView
     if (onRankingChange) {
       onRankingChange(newPlacements);
     }
   };
-
-  useEffect(() => {
-    onRankingChange?.(placements); // Send initial blank state just in case
-  }, []);
 
   return (
     <div className="overflow-x-auto">

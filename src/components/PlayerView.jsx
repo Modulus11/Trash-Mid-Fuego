@@ -1,7 +1,7 @@
 // src/components/PlayerView.jsx
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { doc, onSnapshot, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore"; // Removed onSnapshot as gameData is a prop
 import RankingBoard from "./RankingBoard";
 import ScoreboardView from "./ScoreboardView";
 import { GAME_MODES } from "../App"; // Import GAME_MODES
@@ -19,47 +19,80 @@ const tierIcons = {
   TRASH: "🗑️"
 };
 
-function PlayerView({ player, gameData }) { // Accept gameData prop
+function PlayerView({ player, gameData }) {
   const [placements, setPlacements] = useState({});
   const [locked, setLocked] = useState(false);
   const [localPoisonItem, setLocalPoisonItem] = useState(''); // For King's selection
 
-  // Directly use gameData props for game state
+  // Now gameMode, targetPlayer, kingPlayerName directly use the gameData prop
   const gameMode = gameData?.gameMode || GAME_MODES.BASIC;
   const targetPlayer = gameData?.targetPlayer || null;
   const kingPlayerName = gameData?.kingPlayerName || null;
 
   const gameRef = doc(db, "games", player.gameCode);
 
+  // This useEffect will now react to gameData prop changes from App.js
   useEffect(() => {
-    // When gameData updates from Firebase, check if player has already submitted
     if (gameData?.responses) {
       const playerResponse = gameData.responses.find(r => r.name === player.name);
       if (playerResponse) {
         setPlacements(playerResponse.placements);
-        setLocked(true); // Lock if already submitted
+        setLocked(true);
       } else {
-        setLocked(false); // Unlock if not yet submitted for this round
-        setPlacements({}); // Clear placements for new round
+        setLocked(false);
+        setPlacements({}); // Clear placements for new round when gameData.responses indicates
       }
+    } else {
+        // If responses array is empty or null, means new round, so unlock and clear placements
+        setLocked(false);
+        setPlacements({});
     }
-    // No need for onSnapshot here, gameData is already being passed as a prop from App.js
-  }, [gameData, player.name]);
-
+  }, [gameData, player.name]); // Depend on gameData and player.name
 
   const handleRankingChange = (newPlacements) => {
-    setPlacements(newPlacements);
+    setPlacements(prev => ({
+      ...prev,
+      ...newPlacements,
+    }));
   };
 
   const handleLockIn = async () => {
     const categoryItems = gameData.selectedCategory?.items || [];
-    const allItemsRanked = categoryItems.every(item => placements[item]);
+    let allItemsRanked = true;
+    const missingItems = [];
+
+    console.group("--- handleLockIn Debug ---"); // Start a console group 
+    console.log("Expected Category Items:", categoryItems); // 
+    console.log("Current Placements State:", placements); // 
+
+    if (categoryItems.length === 0) {
+      allItemsRanked = false;
+      console.warn("Category items array is empty, cannot lock in!"); // 
+    } else {
+      for (const item of categoryItems) {
+        const rankValue = placements[item]; // Get the exact value for the item 
+        console.log(`Checking item: "${item}", stored rank: "${rankValue}"`); // 
+
+        // Check if the rankValue is truthy AND not an empty string or null/undefined
+        // Sometimes, RankingBoard might set an item to '' or null if unranked
+        if (!rankValue || rankValue === null || rankValue === '') { // 
+            allItemsRanked = false;
+            missingItems.push(item);
+            console.warn(`Item "${item}" is considered not ranked (value: "${rankValue}").`); // 
+        }
+      }
+    }
 
     if (!allItemsRanked) {
       alert("Please rank all items before locking in!");
+      console.error("Lock-in failed. Missing or invalid rankings for items:", missingItems); // 
+      console.groupEnd(); // End console group 
       return;
     }
 
+    // --- If allItemsRanked is true, the code below will execute ---
+    console.log("All items are successfully ranked. Proceeding with submission."); // 
+    console.groupEnd(); // End console group 
     try {
       const filteredResponses = (gameData.responses || []).filter(r => r.name !== player.name);
 
@@ -72,6 +105,7 @@ function PlayerView({ player, gameData }) { // Accept gameData prop
         }]
       });
       setLocked(true);
+      console.log("Rankings successfully locked in and submitted to Firebase!"); // 
     } catch (err) {
       console.error("Error locking in:", err);
     }
