@@ -6,6 +6,12 @@ import RankingBoard from "./RankingBoard";
 import ScoreboardView from "./ScoreboardView";
 import { GAME_MODES } from "../App"; // Import GAME_MODES
 
+// Utility function (already defined, ensure it's at the top of file)
+const capitalizeWords = (str) => {
+  if (!str) return '';
+  return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+};
+
 const TIERS = ["FUEGO", "MID", "TRASH"];
 const tierIcons = {
   FUEGO: "🔥",
@@ -13,15 +19,15 @@ const tierIcons = {
   TRASH: "🗑️"
 };
 
-// Updated props: player and gameData from App.js
-function PlayerView({ player, gameData }) {
+function PlayerView({ player, gameData }) { // Accept gameData prop
   const [placements, setPlacements] = useState({});
   const [locked, setLocked] = useState(false);
+  const [localPoisonItem, setLocalPoisonItem] = useState(''); // For King's selection
 
-  // Directly use gameData props
+  // Directly use gameData props for game state
   const gameMode = gameData?.gameMode || GAME_MODES.BASIC;
   const targetPlayer = gameData?.targetPlayer || null;
-  const kingPlayerName = gameData?.kingPlayerName || null; // NEW for Poison Round
+  const kingPlayerName = gameData?.kingPlayerName || null;
 
   const gameRef = doc(db, "games", player.gameCode);
 
@@ -37,6 +43,7 @@ function PlayerView({ player, gameData }) {
         setPlacements({}); // Clear placements for new round
       }
     }
+    // No need for onSnapshot here, gameData is already being passed as a prop from App.js
   }, [gameData, player.name]);
 
 
@@ -45,7 +52,6 @@ function PlayerView({ player, gameData }) {
   };
 
   const handleLockIn = async () => {
-    // Check if all items are ranked before locking in
     const categoryItems = gameData.selectedCategory?.items || [];
     const allItemsRanked = categoryItems.every(item => placements[item]);
 
@@ -55,7 +61,6 @@ function PlayerView({ player, gameData }) {
     }
 
     try {
-      // Remove any existing response for this player first to prevent duplicates
       const filteredResponses = (gameData.responses || []).filter(r => r.name !== player.name);
 
       await updateDoc(gameRef, {
@@ -63,7 +68,7 @@ function PlayerView({ player, gameData }) {
           name: player.name,
           placements,
           submittedAt: new Date().toISOString(),
-          score: 0 // 👈 start with 0, updated later after reveal
+          score: 0 // Will be updated later after reveal
         }]
       });
       setLocked(true);
@@ -72,9 +77,7 @@ function PlayerView({ player, gameData }) {
     }
   };
 
-
   const handleReveal = async () => {
-    // This button should only appear for the host and if all players submitted
     try {
       await updateDoc(gameRef, {
         status: "reveal"
@@ -84,12 +87,77 @@ function PlayerView({ player, gameData }) {
     }
   };
 
-  // If game status is scoreboard, App.js routes to ScoreboardView directly
+  // --- NEW: King's Poison Item Selection Handler ---
+  const handleSetPoisonItemByKing = async () => {
+    if (!localPoisonItem || !gameData.selectedCategory?.items.includes(localPoisonItem)) {
+      alert('Please select a valid poison item from the current category.');
+      return;
+    }
+    try {
+      await updateDoc(gameRef, {
+        poisonItem: localPoisonItem, // Set poison item in Firebase
+        status: "active" // Change status to active, so players can start ranking
+      });
+      // No need to reset local state for poison item selection, PlayerView will re-render
+    } catch (e) {
+      console.error("Error setting poison item by King:", e);
+    }
+  };
+
+
+  // --- Render Logic ---
+  if (!gameData) return <p className="text-center mt-8">Loading game data...</p>;
   if (gameData.status === "scoreboard") {
-      // This part should technically not be reached if App.js routes correctly
-      return <p className="text-center mt-8">Transitioning to scoreboard...</p>;
+    // This part is handled by App.js directly routing to ScoreboardView
+    return <p className="text-center mt-8">Transitioning to scoreboard...</p>;
   }
 
+  // --- King's Poison Choice Phase ---
+  if (gameData.status === "kingChoosingPoison") {
+    if (player.name === kingPlayerName) {
+      // Current player is the King: show poison selection UI
+      const categoryItems = gameData.selectedCategory?.items || [];
+      if (!categoryItems.length) {
+        return <p className="text-center mt-8">Waiting for host to set category items for King's choice...</p>;
+      }
+      return (
+        <div className="max-w-md mx-auto mt-8 p-4 bg-red-100 shadow rounded text-gray-800 text-center">
+          <h2 className="text-2xl font-bold mb-4 text-red-700">👑 You are the King! ☠️</h2>
+          <h3 className="text-xl font-semibold mb-4">Secretly Choose the POISON Item:</h3>
+          <p className="text-lg mb-4">Category: {gameData.selectedCategory?.title}</p>
+          <select
+            className="w-full border rounded p-2 mb-4 text-gray-800"
+            value={localPoisonItem}
+            onChange={(e) => setLocalPoisonItem(e.target.value)}
+          >
+            <option value="">-- Select Poison Item --</option>
+            {categoryItems.map((item, idx) => (
+              <option key={idx} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+          <button
+            className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 w-full"
+            onClick={handleSetPoisonItemByKing}
+            disabled={!localPoisonItem}
+          >
+            ✅ Set Poison & Start Round
+          </button>
+        </div>
+      );
+    } else {
+      // Other players: show waiting message
+      return (
+        <div className="text-center mt-20">
+          <p className="text-xl text-gray-700">⏳ Waiting for the King ({kingPlayerName}) to choose the poison item...</p>
+          <p className="text-lg text-gray-600 mt-2">Game Code: {player.gameCode}</p>
+        </div>
+      );
+    }
+  }
+
+  // --- Normal Game Phases (active, reveal, waiting in lobby for non-host) ---
   if (gameData.status !== "active") {
     return (
       <div className="text-center mt-20">
@@ -103,6 +171,7 @@ function PlayerView({ player, gameData }) {
     );
   }
 
+  // Only render RankingBoard if status is 'active'
   const category = gameData.selectedCategory;
   const items = category?.items || [];
 
@@ -118,14 +187,14 @@ function PlayerView({ player, gameData }) {
           : `Rank This: "${category?.title}"`}
       </h2>
       <p className="text-center text-xl font-semibold mb-2">
-          Mode: <span className="underline">{gameMode.replace(/([A-Z])/g, ' $1').trim()}</span> {/* Display current mode nicely */}
+          Mode: <span className="underline">{capitalizeWords(gameMode.replace(/([A-Z])/g, ' $1').trim())}</span>
       </p>
 
       {gameMode === GAME_MODES.POISON_ROUND && kingPlayerName && (
         <p className="text-center text-md text-red-600 mb-2">King: {kingPlayerName}</p>
       )}
 
-      {gameData.players && ( // Ensure players array exists before trying to find player score
+      {gameData.players && (
         <p className="text-center text-lg text-gray-600 mb-2">
           Your Score:{" "}
           <strong>
@@ -138,7 +207,7 @@ function PlayerView({ player, gameData }) {
         items={items}
         onRankingChange={handleRankingChange}
         lockedIn={locked}
-        initialPlacements={placements} // Pass initial placements for pre-filled board
+        initialPlacements={placements}
       />
 
       <div className="text-center mt-6 space-y-4">
@@ -161,7 +230,7 @@ function PlayerView({ player, gameData }) {
               allSubmitted
                 ? "bg-blue-600 hover:bg-blue-700"
                 : "bg-gray-400 cursor-not-allowed"
-            } ml-4`} 
+            } ml-4`}
             onClick={handleReveal}
             disabled={!allSubmitted}
           >

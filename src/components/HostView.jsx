@@ -1,59 +1,46 @@
 // src/components/HostView.jsx
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { doc, onSnapshot, updateDoc, setDoc } from "firebase/firestore"; // Import setDoc for clearer game room reset
-import  categories  from "../data/tmfCategories.json"; // Corrected import from categories.js
-import ScoreboardView from "./ScoreboardView"; // Ensure this is imported if used directly here, but App.js handles it now
+import { doc, onSnapshot, updateDoc, setDoc } from "firebase/firestore";
+import categories from "../data/tmfCategories.json"; // Ensure this import is correct
 import { GAME_MODES } from "../App"; // Import GAME_MODES
 
 function shuffleArray(array) {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
-// Updated props: gameCode and gameData from App.js
 function HostView({ gameCode, gameData, onBack }) {
   const [localGameMode, setLocalGameMode] = useState(gameData?.gameMode || GAME_MODES.BASIC);
   const [localSelectedCategory, setLocalSelectedCategory] = useState(gameData?.selectedCategory?.title || "");
-  const [targetPlayerName, setTargetPlayerName] = useState(gameData?.targetPlayer || ""); // For Do You Know Me
-  const [kingPlayerName, setKingPlayerName] = useState(gameData?.kingPlayerName || ""); // For Poison Round King
-  const [poisonItem, setPoisonItem] = useState(gameData?.poisonItem || ""); // For Poison Round item
+  const [targetPlayerName, setTargetPlayerName] = useState(gameData?.targetPlayer || "");
+  const [kingPlayerName, setKingPlayerName] = useState(gameData?.kingPlayerName || "");
 
-  // State to manage the special phase for Poison Round host setup
-  const [isPoisonItemSelectionPhase, setIsPoisonItemSelectionPhase] = useState(false);
+  // isPoisonItemSelectionPhase is removed from HostView as King handles it in PlayerView
 
-  // Sync local states with gameData from Firebase
+  // Helper properties derived from gameData
+  const players = gameData?.players || [];
+  const status = gameData?.status || "waiting";
+  const selectedCategory = gameData?.selectedCategory;
+
+  // --- Sync local states with Firebase gameData ---
   useEffect(() => {
     if (gameData) {
       setLocalGameMode(gameData.gameMode || GAME_MODES.BASIC);
       setLocalSelectedCategory(gameData.selectedCategory?.title || "");
       setTargetPlayerName(gameData.targetPlayer || "");
       setKingPlayerName(gameData.kingPlayerName || "");
-      setPoisonItem(gameData.poisonItem || "");
-
-      // If we are in Poison Round and King is chosen but item is not, and we are not ranking yet
-      if (gameData.gameMode === GAME_MODES.POISON_ROUND && gameData.kingPlayerName && !gameData.poisonItem && gameData.status === 'active') {
-          setIsPoisonItemSelectionPhase(true);
-      } else {
-          setIsPoisonItemSelectionPhase(false); // Reset if not in this phase
-      }
+      // poisonItem state is no longer needed in HostView as King sets it
     }
   }, [gameData]);
 
-  // Helper to get players from gameData
-  const players = gameData?.players || [];
-  const status = gameData?.status || "waiting";
-  const selectedCategory = gameData?.selectedCategory;
-
+  // --- Handlers for Host Actions ---
 
   const handleCategorySelect = async (category) => {
-    // We update Firebase directly only when starting the round, not on select
-    // Local state setSelectedCategory handles the UI
     const gameRef = doc(db, "games", gameCode);
     const randomizedCategory = {
       ...category,
-      items: shuffleArray(category.items).slice(0, 5) // Ensure we always take 5 items after shuffle
+      items: shuffleArray(category.items).slice(0, 5)
     };
-    // Update Firebase directly on select for immediate player view update
     await updateDoc(gameRef, { selectedCategory: randomizedCategory });
   };
 
@@ -62,7 +49,7 @@ function HostView({ gameCode, gameData, onBack }) {
     handleCategorySelect(random);
   };
 
-  // Custom Category States (no changes, assuming they were working)
+  // Custom Category States (assumed working)
   const [useCustom, setUseCustom] = useState(false);
   const [customTitle, setCustomTitle] = useState("");
   const [customItems, setCustomItems] = useState(["", "", "", "", ""]);
@@ -70,34 +57,32 @@ function HostView({ gameCode, gameData, onBack }) {
   const handleSaveCustomCategory = async () => {
     const customCategory = {
       title: customTitle,
-      items: customItems.filter(item => item.trim() !== ''), // Filter out empty items
+      items: customItems.filter(item => item.trim() !== ''),
       isCustom: true
     };
     if (customCategory.items.length === 0) {
-        alert("Please enter at least one item for your custom category.");
-        return;
+      alert("Please enter at least one item for your custom category.");
+      return;
     }
-    await handleCategorySelect(customCategory); // Use the same handler to update Firebase
+    await handleCategorySelect(customCategory);
   };
-
 
   const handleStartRound = async () => {
     if (!selectedCategory) {
-        alert("Please select a category first.");
-        return;
+      alert("Please select a category first.");
+      return;
     }
     const gameRef = doc(db, "games", gameCode);
 
     const gameUpdate = {
-      status: "active", // Change status to active for ranking
-      categoryItems: selectedCategory.items, // This might be redundant if selectedCategory is stored
+      categoryItems: selectedCategory.items,
       revealIndex: 0,
-      // votes: {}, // 'votes' is not in current Firebase structure, 'responses' is used
-      responses: [], // Reset responses for new round
-      gameMode: localGameMode, // Set the selected game mode
+      responses: [], // Reset responses
+      gameMode: localGameMode,
       targetPlayer: null, // Reset target player
       kingPlayerName: null, // Reset king player
       poisonItem: null, // Reset poison item
+      status: "active" // Default for most modes
     };
 
     if (localGameMode === GAME_MODES.DO_YOU_KNOW_ME) {
@@ -112,43 +97,23 @@ function HostView({ gameCode, gameData, onBack }) {
         return;
       }
       gameUpdate.kingPlayerName = kingPlayerName;
-      // Poison item will be selected in a next phase by the King/Host
+      // CRUCIAL: For Poison Round, status becomes 'kingChoosingPoison' to signal King's turn
+      gameUpdate.status = "kingChoosingPoison";
     }
 
     try {
       await updateDoc(gameRef, gameUpdate);
-      // Transition to poison item selection phase if it's Poison Round
-      if (localGameMode === GAME_MODES.POISON_ROUND) {
-          setIsPoisonItemSelectionPhase(true);
-      }
+      // No local state transition needed for poison selection in HostView anymore
     } catch (e) {
       console.error("Error starting round:", e);
     }
   };
 
-  const handleSetPoisonItem = async () => {
-      if (!poisonItem || !selectedCategory?.items.includes(poisonItem)) {
-          alert('Please select a valid poison item from the current category.');
-          return;
-      }
-      const gameRef = doc(db, "games", gameCode);
-      try {
-          await updateDoc(gameRef, {
-              poisonItem: poisonItem, // Update Firebase with the chosen poison item
-              status: "active" // Ensure status is active after poison is set
-          });
-          setIsPoisonItemSelectionPhase(false); // Exit the selection phase
-      } catch (e) {
-          console.error("Error setting poison item:", e);
-      }
-  };
+  // handleSetPoisonItem is removed from HostView as King handles it in PlayerView
 
-
-  // No direct rendering of ScoreboardView here, App.js handles that based on status
-  // if (gameData?.status === "scoreboard") { ... }
-
+  // --- Rendered JSX ---
   return (
-    <div className="max-w-xl mx-auto mt-10 p-4 bg-white shadow rounded text-gray-800"> {/* Added text-gray-800 for visibility */}
+    <div className="max-w-xl mx-auto mt-10 p-4 bg-white shadow rounded text-gray-800">
       <h2 className="text-2xl font-bold mb-4 text-center">👑 Host Panel</h2>
       <p className="text-center text-sm mb-4 text-gray-600">
         Game Code: <strong>{gameCode}</strong>
@@ -170,8 +135,8 @@ function HostView({ gameCode, gameData, onBack }) {
         )}
       </ul>
 
-      {/* Conditional rendering based on game status */}
-      {status === 'waiting' ? (
+      {/* Main content display based on game status */}
+      {status === 'waiting' ? ( // Lobby setup for all modes
         <>
           {/* CATEGORY SELECTION */}
           <div className="mb-4">
@@ -181,8 +146,8 @@ function HostView({ gameCode, gameData, onBack }) {
               value={localSelectedCategory}
               onChange={(e) => {
                 const cat = categories.find(c => c.title === e.target.value);
-                setLocalSelectedCategory(e.target.value); // Update local state for dropdown display
-                handleCategorySelect(cat); // Update Firebase
+                setLocalSelectedCategory(e.target.value);
+                handleCategorySelect(cat);
               }}
             >
               <option value="">-- Choose a Category --</option>
@@ -258,18 +223,15 @@ function HostView({ gameCode, gameData, onBack }) {
               value={localGameMode}
               onChange={(e) => {
                 const newMode = e.target.value;
-                setLocalGameMode(newMode); // Update local state for dropdown
-                // Reset mode-specific selections if mode changes
+                setLocalGameMode(newMode);
                 setTargetPlayerName("");
                 setKingPlayerName("");
-                setPoisonItem("");
-                setIsPoisonItemSelectionPhase(false);
               }}
             >
               <option value={GAME_MODES.BASIC}>We're Basic (default)</option>
               <option value={GAME_MODES.DO_YOU_KNOW_ME}>Do You Know Me?</option>
-              <option value={GAME_MODES.POISON_ROUND}>Poison Round</option> {/* NEW */}
-              <option value={GAME_MODES.HOT_TAKE}>Hot Take Mode (Contrarian)</option> {/* NEW */}
+              <option value={GAME_MODES.POISON_ROUND}>Poison Round</option>
+              <option value={GAME_MODES.HOT_TAKE}>Hot Take Mode (Contrarian)</option>
             </select>
           </div>
 
@@ -292,8 +254,8 @@ function HostView({ gameCode, gameData, onBack }) {
             </div>
           )}
 
-          {/* SELECT KING (for Poison Round - initial selection) */}
-          {localGameMode === GAME_MODES.POISON_ROUND && !isPoisonItemSelectionPhase && (
+          {/* SELECT KING (for Poison Round) */}
+          {localGameMode === GAME_MODES.POISON_ROUND && (
             <div className="mb-4 p-4 border rounded bg-red-50">
               <h3 className="font-semibold mb-2 text-gray-800">👑 Choose the King for Poison Round</h3>
               <select
@@ -308,32 +270,6 @@ function HostView({ gameCode, gameData, onBack }) {
                   </option>
                 ))}
               </select>
-            </div>
-          )}
-
-          {/* POISON ITEM SELECTION (for Poison Round - second phase) */}
-          {localGameMode === GAME_MODES.POISON_ROUND && isPoisonItemSelectionPhase && selectedCategory && (
-            <div className="mb-4 p-4 border rounded bg-red-100">
-              <h3 className="font-semibold mb-2 text-red-700">☠️ King: Secretly Choose the POISON Item!</h3>
-              <select
-                className="w-full border rounded p-2 text-gray-800"
-                value={poisonItem}
-                onChange={(e) => setPoisonItem(e.target.value)}
-              >
-                <option value="">-- Select Poison Item --</option>
-                {selectedCategory.items.map((item, idx) => (
-                  <option key={idx} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-              <button
-                className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 mt-4 w-full"
-                onClick={handleSetPoisonItem}
-                disabled={!poisonItem}
-              >
-                ✅ Set Poison & Start Ranking
-              </button>
             </div>
           )}
 
@@ -353,16 +289,19 @@ function HostView({ gameCode, gameData, onBack }) {
             </div>
           )}
         </>
-      ) : (
-        // Display during active/reveal/scoreboard phases (Host can still manage)
+      ) : status === 'kingChoosingPoison' ? ( // NEW: Host's view when King is choosing poison
+        <div className="text-center mt-8 p-4 border rounded bg-yellow-50 text-gray-800">
+          <h3 className="text-xl font-semibold mb-4">⏳ Waiting for the King to Choose the Poison Item...</h3>
+          <p className="text-lg">King: <strong>{gameData.kingPlayerName}</strong></p>
+          <p className="text-md mt-2">Category: {selectedCategory?.title}</p>
+        </div>
+      ) : ( // All other statuses (active, reveal, scoreboard)
         <div className="text-center mt-8">
-            <p className="text-xl font-semibold mb-4">Game Status: {status.toUpperCase()}</p>
-            {status === 'active' && <p>Players are currently ranking for: {selectedCategory?.title}</p>}
-            {status === 'reveal' && <p>Results are being revealed for: {selectedCategory?.title}</p>}
-            {/* The rest of the Host's in-game controls (e.g., reveal button) are now in PlayerView/RevealView and managed by App.js based on status */}
+          <p className="text-xl font-semibold mb-4">Game Status: {status.toUpperCase()}</p>
+          {status === 'active' && <p>Players are currently ranking for: {selectedCategory?.title}</p>}
+          {status === 'reveal' && <p>Results are being revealed for: {selectedCategory?.title}</p>}
         </div>
       )}
-
 
       <div className="text-center mt-6">
         <button
@@ -386,7 +325,7 @@ function HostView({ gameCode, gameData, onBack }) {
         <p><strong>Target Player:</strong> {gameData?.targetPlayer || "None"}</p>
         <p><strong>King Player:</strong> {gameData?.kingPlayerName || "None"}</p>
         <p><strong>Poison Item:</strong> {gameData?.poisonItem || "None"}</p>
-        <p><strong>Poison Selection Phase:</strong> {isPoisonItemSelectionPhase ? "True" : "False"}</p>
+        {/* Debug only, isPoisonItemSelectionPhase no longer drives UI directly */}
       </div>
     </div>
   );

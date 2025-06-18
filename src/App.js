@@ -3,28 +3,30 @@ import React, { useState } from "react";
 import CategoryCard from "./components/CategoryCard";
 import RankingBoard from "./components/RankingBoard";
 import JoinGame from "./components/JoinGame";
-import { categories } from "./data/categories";
+import  categories  from "./data/tmfCategories.json"; // This should be 'tmfCategories.json' as per your setup
 import { db } from "./firebase";
 import HostView from "./components/HostView";
 import PlayerView from "./components/PlayerView";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { useEffect } from "react";
 import RevealView from "./components/RevealView";
-import ScoreboardView from "./components/ScoreboardView"; // Ensure ScoreboardView is imported
+import ScoreboardView from "./components/ScoreboardView";
 
 // Define your game modes here
 export const GAME_MODES = {
   BASIC: 'basic',
   DO_YOU_KNOW_ME: 'doYouKnowMe',
-  POISON_ROUND: 'poisonRound', // NEW
-  HOT_TAKE: 'hotTake',         // NEW
+  POISON_ROUND: 'poisonRound',
+  HOT_TAKE: 'hotTake',
   // 'createYourOwnCategories' is implicitly handled by HostView logic
 };
+
+// ... (existing App.js code, e.g., App component definition, state, createTestGameRoom)
 
 function App() {
   const [mode, setMode] = useState("menu"); // 'menu' | 'solo' | 'multi'
   const [player, setPlayer] = useState(null);
-  const [gameData, setGameData] = useState(null); // This will hold all game state from Firebase
+  const [gameData, setGameData] = useState(null);
 
   useEffect(() => {
     if (!player) return;
@@ -42,7 +44,7 @@ function App() {
   // Solo mode state (no changes)
   const [round, setRound] = useState(0);
   const [showBoard, setShowBoard] = useState(true);
-  const currentCategory = categories[round];
+  const currentCategory = categories[round]; // Assuming categories from categories.js
 
   const handleNext = () => {
     setShowBoard(false);
@@ -52,7 +54,7 @@ function App() {
     }, 100);
   };
 
-  // Firebase test room creation (no changes)
+  // Firebase test room creation (no changes, just ensured initialization of new fields)
   const createTestGameRoom = async () => {
     const generateCode = () => {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -68,7 +70,7 @@ function App() {
     try {
       await setDoc(doc(db, "games", gameCode), {
         createdAt: new Date().toISOString(),
-        selectedCategory: null, // Initialize without a selected category
+        selectedCategory: null,
         status: "waiting", // Start in waiting phase
         players: [
           {
@@ -88,7 +90,6 @@ function App() {
         rounds: []
       });
 
-      // Set host as the player
       setPlayer({
         name: hostName,
         gameCode: gameCode,
@@ -102,13 +103,12 @@ function App() {
     }
   };
 
-
   return (
     <div className="App p-4 max-w-5xl mx-auto">
       <h1 className="text-4xl font-bold text-center mt-6">🔥 Trash, Mid, Fuego</h1>
       <p className="text-center text-lg mb-4">Prototype Playground</p>
 
-      {/* MAIN MENU */}
+      {/* MAIN MENU (no changes) */}
       {mode === "menu" && (
         <div className="text-center mt-10 space-y-4">
           <button
@@ -126,7 +126,7 @@ function App() {
         </div>
       )}
 
-      {/* SOLO MODE */}
+      {/* SOLO MODE (no changes) */}
       {mode === "solo" && (
         <>
           <CategoryCard title={currentCategory.title} items={currentCategory.items} />
@@ -138,7 +138,6 @@ function App() {
             >
               ➡️ Next Category
             </button>
-
             <div>
               <button
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -147,7 +146,6 @@ function App() {
                 🧪 Create Test Game Room
               </button>
             </div>
-
             <div>
               <button
                 className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 mt-4"
@@ -175,22 +173,22 @@ function App() {
         </>
       )}
 
-      {mode === "multi" && player && (
-        gameData?.status === "active" ? (
-          <PlayerView player={player} gameData={gameData} /> 
-        ) : gameData?.status === "reveal" ? 
+      {mode === "multi" && player && gameData ? ( // gameData must be present to route by status
+        gameData.status === "active" ? (
+          <PlayerView player={player} gameData={gameData} />
+        ) : gameData.status === "reveal" ? (
           <RevealView player={player} gameCode={player.gameCode} gameData={gameData} />
-        : gameData?.status === "scoreboard" ? ( // Added scoreboard condition
+        ) : gameData.status === "scoreboard" ? (
           <ScoreboardView
             players={gameData.players || []}
             rounds={gameData.rounds || []}
             onNext={async () => {
               const gameRef = doc(db, "games", player.gameCode);
               await setDoc(gameRef, {
-                createdAt: gameData.createdAt, // Keep original creation time
+                createdAt: gameData.createdAt,
                 selectedCategory: null,
-                status: "waiting",
-                players: gameData.players.map(p => ({...p, score: p.score || 0})), // Maintain scores unless you want to reset
+                status: "waiting", // Reset to waiting for next round setup
+                players: gameData.players.map(p => ({...p, score: p.score || 0})), // Maintain scores
                 gameMode: GAME_MODES.BASIC, // Reset to default mode
                 targetPlayer: null,
                 kingPlayerName: null,
@@ -198,23 +196,29 @@ function App() {
                 revealIndex: 0,
                 votes: {},
                 responses: [],
-                rounds: gameData.rounds || [] // Keep history of rounds
-              }, { merge: true }); // Use merge to avoid overwriting entire document
+                rounds: gameData.rounds || [] // Keep history
+              }, { merge: true });
             }}
           />
-        ) : player.isHost ? (
+        ) : gameData.status === "waiting" && player.isHost ? ( // Host is in lobby setup
           <HostView
             gameCode={player.gameCode}
-            gameData={gameData} // Pass gameData
+            gameData={gameData}
             onBack={() => {
               setPlayer(null);
               setMode("menu");
               setGameData(null);
             }}
           />
+        ) : gameData.status === "waiting" && !player.isHost ? ( // Non-host player is in lobby (waiting)
+          <PlayerView player={player} gameData={gameData} /> // PlayerView handles lobby display for non-host
+        ) : gameData.status === "kingChoosingPoison" ? ( // NEW: intermediate status for King's choice
+          <PlayerView player={player} gameData={gameData} /> // PlayerView handles King's choice logic
         ) : (
-          <PlayerView player={player} gameData={gameData} /> 
+          <div className="text-center mt-20">Loading game or unknown status...</div>
         )
+      ) : ( // player is truthy, but gameData is still null (initial load)
+        <div className="text-center mt-20">Loading game data...</div>
       )}
     </div>
   );

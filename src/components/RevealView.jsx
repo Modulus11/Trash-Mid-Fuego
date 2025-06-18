@@ -3,7 +3,11 @@ import React, { useEffect, useState } from "react";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { GAME_MODES } from "../App"; // Import GAME_MODES
-
+// Utility function to capitalize the first letter of each word
+const capitalizeWords = (str) => {
+  if (!str) return '';
+  return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+};
 // Updated props: gameCode and gameData from App.js
 function RevealView({ gameCode, player, gameData }) {
   const revealIndex = gameData?.revealIndex || 0;
@@ -224,8 +228,8 @@ function RevealView({ gameCode, player, gameData }) {
         Item: <strong>{currentItem}</strong>
       </h3>
       <p className="text-center text-lg font-semibold mb-4">
-          Mode: <span className="underline">{gameData?.gameMode?.replace(/([A-Z])/g, ' $1').trim()}</span>
-      </p>
+    Mode: <span className="underline">{capitalizeWords(gameData?.gameMode?.replace(/([A-Z])/g, ' $1').trim())}</span>
+</p>
 
       {gameData?.gameMode === GAME_MODES.POISON_ROUND && revealIndex === 0 && gameData?.poisonItem && (
         <p className="text-red-500 font-semibold text-center mb-4 animate-pulse">
