@@ -4,13 +4,14 @@ import CategoryCard from "./components/CategoryCard";
 import RankingBoard from "./components/RankingBoard";
 import JoinGame from "./components/JoinGame";
 import  categories  from "./data/tmfCategories.json"; // This should be 'tmfCategories.json' as per your setup
-import { db } from "./firebase";
+import { db, rtdb } from "./firebase";
 import HostView from "./components/HostView";
 import PlayerView from "./components/PlayerView";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { useEffect } from "react";
 import RevealView from "./components/RevealView";
 import ScoreboardView from "./components/ScoreboardView";
+import { ref, set, onDisconnect, remove } from "firebase/database";
 
 // Define your game modes here
 export const GAME_MODES = {
@@ -27,6 +28,7 @@ function App() {
   const [mode, setMode] = useState("menu"); // 'menu' | 'solo' | 'multi'
   const [player, setPlayer] = useState(null);
   const [gameData, setGameData] = useState(null);
+  const [hostUid, setHostUid] = useState(null);
 
   useEffect(() => {
     if (!player) return;
@@ -60,42 +62,46 @@ function App() {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
       return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
     };
-
+    const generateUid = () => {
+      return Array.from({ length: 20 }, () => Math.floor(Math.random() * 36).toString(36)).join("");
+    };
     const gameCode = generateCode();
-
-    const hostName = prompt("Enter your name (you’ll be the host):");
-
+    const hostName = prompt("Enter your name (you'll be the host):");
     if (!hostName) return;
-
+    const newHostUid = generateUid();
     try {
       await setDoc(doc(db, "games", gameCode), {
         createdAt: new Date().toISOString(),
         selectedCategory: null,
-        status: "waiting", // Start in waiting phase
+        status: "waiting",
         players: [
           {
             name: hostName,
             isHost: true,
             joinedAt: new Date().toISOString(),
-            score: 0 // Initialize score for host
+            score: 0
           }
         ],
-        gameMode: GAME_MODES.BASIC, // Default game mode
-        targetPlayer: null, // For Do You Know Me
-        kingPlayerName: null, // For Poison Round
-        poisonItem: null, // For Poison Round
+        gameMode: GAME_MODES.BASIC,
+        targetPlayer: null,
+        kingPlayerName: null,
+        poisonItem: null,
         revealIndex: 0,
         votes: {},
         responses: [],
         rounds: []
       });
-
+      // Host presence in RTDB
+      const presenceRef = ref(rtdb, `/presence/${gameCode}/${newHostUid}`);
+      await set(presenceRef, { alive: true, ts: Date.now() });
+      onDisconnect(presenceRef).remove();
+      setHostUid(newHostUid);
       setPlayer({
         name: hostName,
         gameCode: gameCode,
-        isHost: true
+        isHost: true,
+        hostUid: newHostUid
       });
-
       setMode("multi");
     } catch (error) {
       console.error("Error creating game room:", error);
@@ -175,7 +181,7 @@ function App() {
 
       {mode === "multi" && player && gameData ? ( // gameData must be present to route by status
         gameData.status === "active" ? (
-          <PlayerView player={player} gameData={gameData} />
+          <PlayerView player={player} gameData={gameData} onLeave={() => { setPlayer(null); setMode('menu'); setGameData(null); }} />
         ) : gameData.status === "reveal" ? (
           <RevealView player={player} gameCode={player.gameCode} gameData={gameData} />
         ) : gameData.status === "scoreboard" ? (
@@ -204,6 +210,7 @@ function App() {
           <HostView
             gameCode={player.gameCode}
             gameData={gameData}
+            hostUid={player.hostUid || hostUid}
             onBack={() => {
               setPlayer(null);
               setMode("menu");
@@ -211,9 +218,9 @@ function App() {
             }}
           />
         ) : gameData.status === "waiting" && !player.isHost ? ( // Non-host player is in lobby (waiting)
-          <PlayerView player={player} gameData={gameData} /> // PlayerView handles lobby display for non-host
+          <PlayerView player={player} gameData={gameData} onLeave={() => { setPlayer(null); setMode('menu'); setGameData(null); }} />
         ) : gameData.status === "kingChoosingPoison" ? ( // NEW: intermediate status for King's choice
-          <PlayerView player={player} gameData={gameData} /> // PlayerView handles King's choice logic
+          <PlayerView player={player} gameData={gameData} onLeave={() => { setPlayer(null); setMode('menu'); setGameData(null); }} />
         ) : (
           <div className="text-center mt-20">Loading game or unknown status...</div>
         )

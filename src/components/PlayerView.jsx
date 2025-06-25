@@ -1,7 +1,9 @@
 // src/components/PlayerView.jsx
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { doc, updateDoc } from "firebase/firestore"; // Removed onSnapshot as gameData is a prop
+import { rtdb } from "../firebase";
+import { ref, onValue } from "firebase/database";
+import { doc, updateDoc } from "firebase/firestore";
 import RankingBoard from "./RankingBoard";
 import ScoreboardView from "./ScoreboardView";
 import { GAME_MODES } from "../App"; // Import GAME_MODES
@@ -19,10 +21,12 @@ const tierIcons = {
   TRASH: "🗑️"
 };
 
-function PlayerView({ player, gameData }) {
+function PlayerView({ player, gameData, onLeave }) {
   const [placements, setPlacements] = useState({});
   const [locked, setLocked] = useState(false);
   const [localPoisonItem, setLocalPoisonItem] = useState(''); // For King's selection
+  const [hostPresent, setHostPresent] = useState(true);
+  const [leaving, setLeaving] = useState(false);
 
   // Now gameMode, targetPlayer, kingPlayerName directly use the gameData prop
   const gameMode = gameData?.gameMode || GAME_MODES.BASIC;
@@ -31,23 +35,47 @@ function PlayerView({ player, gameData }) {
 
   const gameRef = doc(db, "games", player.gameCode);
 
-  // This useEffect will now react to gameData prop changes from App.js
   useEffect(() => {
-    if (gameData?.responses) {
-      const playerResponse = gameData.responses.find(r => r.name === player.name);
-      if (playerResponse) {
-        setPlacements(playerResponse.placements);
-        setLocked(true);
-      } else {
-        setLocked(false);
-        setPlacements({}); // Clear placements for new round when gameData.responses indicates
-      }
+    if (!gameData) return; // Ensure gameData exists
+
+    const playerResponse = gameData.responses?.find(r => r.name === player.name);
+
+    // Case 1: Player has a submitted response in Firebase for this round
+    if (playerResponse) {
+      setPlacements(playerResponse.placements);
+      setLocked(true);
     } else {
-        // If responses array is empty or null, means new round, so unlock and clear placements
-        setLocked(false);
+      // Case 2: Player has NOT submitted a response for this round yet.
+      // Determine if a new round has truly started and placements should be cleared.
+      // A new round means responses array is empty AND game is active,
+      // OR the status is waiting/kingChoosingPoison, signaling a pre-game setup phase.
+      if (
+          (gameData.responses?.length === 0 && gameData.status === "active") ||
+          gameData.status === "waiting" ||
+          gameData.status === "kingChoosingPoison"
+      ) {
+        // If it's a genuinely new round OR pre-active setup phase, clear local placements.
         setPlacements({});
+        setLocked(false);
+      } else {
+        // If game is active, but responses array is NOT empty (meaning others have submitted)
+        // AND this player hasn't submitted yet, then DO NOT clear their local placements.
+        // Just ensure they are unlocked.
+        setLocked(false);
+        // placements state should remain as is from local user interaction
+      }
     }
-  }, [gameData, player.name]); // Depend on gameData and player.name
+  }, [gameData, player.name]);
+
+  // Listen for host presence in RTDB
+  useEffect(() => {
+    if (!player?.gameCode) return;
+    const presenceRef = ref(rtdb, `/presence/${player.gameCode}`);
+    const unsubscribe = onValue(presenceRef, (snap) => {
+      setHostPresent(!!(snap && snap.exists() && snap.val() && Object.keys(snap.val()).length > 0));
+    });
+    return () => unsubscribe();
+  }, [player?.gameCode]);
 
   const handleRankingChange = (newPlacements) => {
     setPlacements(prev => ({
@@ -61,38 +89,35 @@ function PlayerView({ player, gameData }) {
     let allItemsRanked = true;
     const missingItems = [];
 
-    console.group("--- handleLockIn Debug ---"); // Start a console group 
-    console.log("Expected Category Items:", categoryItems); // 
-    console.log("Current Placements State:", placements); // 
+    console.group("--- handleLockIn Debug ---");
+    console.log("Expected Category Items:", categoryItems);
+    console.log("Current Placements State:", placements);
 
     if (categoryItems.length === 0) {
       allItemsRanked = false;
-      console.warn("Category items array is empty, cannot lock in!"); // 
+      console.warn("Category items array is empty, cannot lock in!");
     } else {
       for (const item of categoryItems) {
-        const rankValue = placements[item]; // Get the exact value for the item 
-        console.log(`Checking item: "${item}", stored rank: "${rankValue}"`); // 
+        const rankValue = placements[item];
+        console.log(`Checking item: "${item}", stored rank: "${rankValue}"`);
 
-        // Check if the rankValue is truthy AND not an empty string or null/undefined
-        // Sometimes, RankingBoard might set an item to '' or null if unranked
-        if (!rankValue || rankValue === null || rankValue === '') { // 
+        if (!rankValue || rankValue === null || rankValue === '') {
             allItemsRanked = false;
             missingItems.push(item);
-            console.warn(`Item "${item}" is considered not ranked (value: "${rankValue}").`); // 
+            console.warn(`Item "${item}" is considered not ranked (value: "${rankValue}").`);
         }
       }
     }
 
     if (!allItemsRanked) {
       alert("Please rank all items before locking in!");
-      console.error("Lock-in failed. Missing or invalid rankings for items:", missingItems); // 
-      console.groupEnd(); // End console group 
+      console.error("Lock-in failed. Missing or invalid rankings for items:", missingItems);
+      console.groupEnd();
       return;
     }
 
-    // --- If allItemsRanked is true, the code below will execute ---
-    console.log("All items are successfully ranked. Proceeding with submission."); // 
-    console.groupEnd(); // End console group 
+    console.log("All items are successfully ranked. Proceeding with submission.");
+    console.groupEnd();
     try {
       const filteredResponses = (gameData.responses || []).filter(r => r.name !== player.name);
 
@@ -105,7 +130,7 @@ function PlayerView({ player, gameData }) {
         }]
       });
       setLocked(true);
-      console.log("Rankings successfully locked in and submitted to Firebase!"); // 
+      console.log("Rankings successfully locked in and submitted to Firebase!");
     } catch (err) {
       console.error("Error locking in:", err);
     }
@@ -138,6 +163,20 @@ function PlayerView({ player, gameData }) {
     }
   };
 
+  // Leave Game handler
+  const handleLeaveGame = async () => {
+    setLeaving(true);
+    try {
+      // Remove player from Firestore game doc
+      const gameRef = doc(db, "games", player.gameCode);
+      const updatedPlayers = (gameData.players || []).filter(p => p.name !== player.name);
+      await updateDoc(gameRef, { players: updatedPlayers });
+    } catch (e) {
+      // Ignore errors
+    }
+    setLeaving(false);
+    if (onLeave) onLeave();
+  };
 
   // --- Render Logic ---
   if (!gameData) return <p className="text-center mt-8">Loading game data...</p>;
@@ -192,6 +231,20 @@ function PlayerView({ player, gameData }) {
   }
 
   // --- Normal Game Phases (active, reveal, waiting in lobby for non-host) ---
+  if (!hostPresent) {
+    return (
+      <div className="text-center mt-20">
+        <p className="text-2xl text-red-600 font-bold mb-4">The host has ended the game or disconnected.</p>
+        <button
+          className="bg-gray-700 text-white px-6 py-3 rounded hover:bg-gray-900"
+          onClick={onLeave}
+        >
+          🔙 Return to Main Menu
+        </button>
+      </div>
+    );
+  }
+
   if (gameData.status !== "active") {
     return (
       <div className="text-center mt-20">
@@ -201,6 +254,13 @@ function PlayerView({ player, gameData }) {
               <ul className="list-disc list-inside">
                 {gameData.players.map(p => <li key={p.name}>{p.name}</li>)}
               </ul>
+        <button
+          className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 mt-6"
+          onClick={handleLeaveGame}
+          disabled={leaving}
+        >
+          {leaving ? 'Leaving...' : '🚪 Leave Game'}
+        </button>
       </div>
     );
   }

@@ -4,12 +4,14 @@ import { db } from "../firebase";
 import { doc, onSnapshot, updateDoc, setDoc } from "firebase/firestore";
 import categories from "../data/tmfCategories.json"; // Ensure this import is correct
 import { GAME_MODES } from "../App"; // Import GAME_MODES
+import { rtdb } from "../firebase";
+import { ref, remove } from "firebase/database";
 
 function shuffleArray(array) {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
-function HostView({ gameCode, gameData, onBack }) {
+function HostView({ gameCode, gameData, hostUid, onBack }) {
   const [localGameMode, setLocalGameMode] = useState(gameData?.gameMode || GAME_MODES.BASIC);
   const [localSelectedCategory, setLocalSelectedCategory] = useState(gameData?.selectedCategory?.title || "");
   const [targetPlayerName, setTargetPlayerName] = useState(gameData?.targetPlayer || "");
@@ -110,6 +112,15 @@ function HostView({ gameCode, gameData, onBack }) {
   };
 
   // handleSetPoisonItem is removed from HostView as King handles it in PlayerView
+
+  // End Game handler: remove host presence and return to menu
+  const handleEndGame = async () => {
+    if (hostUid) {
+      const presenceRef = ref(rtdb, `/presence/${gameCode}/${hostUid}`);
+      await remove(presenceRef);
+    }
+    onBack();
+  };
 
   // --- Rendered JSX ---
   return (
@@ -310,6 +321,14 @@ function HostView({ gameCode, gameData, onBack }) {
         >
           🔙 Back to Main Menu
         </button>
+        {hostUid && (
+          <button
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-4"
+            onClick={handleEndGame}
+          >
+            🛑 End Game (Delete Room)
+          </button>
+        )}
       </div>
 
       {/* 🐞 DEBUG PANEL */}

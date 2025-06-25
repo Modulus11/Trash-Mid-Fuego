@@ -2,6 +2,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore"; // ✅ this is what connects Firestore
+import { getDatabase } from "firebase/database"; // <-- Add this import
 
 // Your Firebase config (keep private in production!)
 const firebaseConfig = {
@@ -18,5 +19,6 @@ const app = initializeApp(firebaseConfig);
 
 // ✅ Initialize Firestore and export it
 const db = getFirestore(app);
+const rtdb = getDatabase(app); // <-- Add this line
 
-export { db };
+export { db, rtdb }; // <-- Export rtdb
